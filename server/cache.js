@@ -100,23 +100,47 @@ Cache.prototype.poll = function *(){
   services.forEach((service, i) => service.taskDef = taskDefs[i].taskDefinition);
   debug('received %d tasks', services.length);
 
-  // for all clusters, get the tasks running
-  let taskCalls = clusters.map(cluster => {
-    return ecs.tasksByCluster(cluster.clusterArn)
-      .then((tasks) => {
-        cluster.tasks = tasks;
-        return tasks;
-      });
-  });
-  // from container instances, retrieve ec2 instances
-  let ec2Instances = containerInstances.map(ci => {
-    return ci.ec2InstanceId;
-  });
-  let instances = yield ec2.instances(ec2Instances);
+    // for all clusters, get the tasks running
+    let taskCalls = clusters.map(cluster => {
+        return ecs.tasksByCluster(cluster.clusterArn)
+            .then((tasks) => {
+                cluster.tasks = tasks;
+                return tasks;
+            });
+    });
+    // from container instances, retrieve ec2 instances
+    let ec2Instances = containerInstances.map(ci => {
+        return ci.ec2InstanceId;
+    });
+    let instances = yield ec2.instances(ec2Instances);
+
 
   let tasks = yield Promise.all(taskCalls);
 
-  this.cache(clusters, services, containerInstances, tasks);
+    // containerInstances.forEach((ci, i) => ci.instanceIp = instances['Reservations'][i].Instances[i].NetworkInterfaces[i].PrivateIpAddress);
+
+    // containerInstances.forEach((ci, i) => ci.instanceIp = ec2Instances[i]);
+
+    // console.log(instances['Reservations'][0]['Instances'])
+
+    // for (var j = 0; containerInstances.length; j++) {
+    //     console.log(containerInstances[j].ec2InstanceId)
+    // }
+
+    // for (var i = 0; instances['Reservations'].length; i++) {
+    //     console.log(instances['Reservations'][i]['Instances'][0]['InstanceId'])
+    // }
+
+
+    for (let j = 0; j<containerInstances.length; j++) {
+        for (let z = 0; z<instances['Reservations'].length; z++) {
+            if (containerInstances[j].ec2InstanceId == instances['Reservations'][z]['Instances'][0]['InstanceId']) {
+                containerInstances[j].instanceIp = instances['Reservations'][z]['Instances'][0]['PrivateIpAddress'];
+            }
+                console.log(containerInstances[j].instanceIp);
+        }
+    }
+    // tasks.forEach((task, i) => task.containerInstanceIP = )this.cache(clusters, services, containerInstances, tasks);
 };
 
 /**
