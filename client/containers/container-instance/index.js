@@ -12,84 +12,85 @@ import TasksList from '../../components/tasks-list';
 import styles from './index.css';
 
 const activeLinkStyle = {
+
   borderBottomColor: '#fff',
   color: '#54585E',
 };
 
 export default class ContainerInstance extends Component {
-  constructor() {
-    super()
-    const hash = window.location.hash.slice(1)
-    const map = qs.decode(hash)
-    this.state = {
-      tab: map.tab
+    constructor() {
+        super()
+        const hash = window.location.hash.slice(1)
+        const map = qs.decode(hash)
+        this.state = {
+            tab: map.tab
+        }
     }
-  }
 
-  render() {
-    return (
-      <div className={styles.ContainerInstance}>
-        <Sheet onClose={::this.closeSheet}>
-          <h1 tabIndex="-1" ref="heading">{this.props.containerInstance.ec2InstanceId}</h1>
-          <ContainerInstanceStats containerInstance={this.props.containerInstance} left={true} fullStats={true} />
-          <Tabs handleSelect={::this.selectTab} selectedTab={this.state.tab} className={styles.ContainerInstanceTabs} activeLinkStyle={activeLinkStyle}>
-            <nav className={styles['ContainerInstanceTabs-navigation']}>
-              <ul>
-                <li>
-                  <a href="#tab=task_def">
-                    <TabLink to="tasks">Tasks</TabLink>
-                  </a>
-                </li>
-              </ul>
-            </nav>
+    render() {
+        return (
+            <div className={styles.ContainerInstance}>
+                <Sheet onClose={::this.closeSheet}>
+                    <h1 tabIndex="-1" ref="heading">{this.props.containerInstance.ec2InstanceId}</h1>
+                    <ContainerInstanceStats containerInstance={this.props.containerInstance} left={true} fullStats={true} />
+                    <Tabs handleSelect={::this.selectTab} selectedTab={this.state.tab} className={styles.ContainerInstanceTabs} activeLinkStyle={activeLinkStyle}>
+                        <nav className={styles['ContainerInstanceTabs-navigation']}>
+                            <ul>
+                                <li>
+                                    <a href="#tab=task_def">
+                                        <TabLink to="tasks">Tasks</TabLink>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
 
-            <div className={styles['ContainerInstanceTabs-content']}>
-              <TabContent for="tasks">
-                <TasksList 
-                  tasks={this.getContainerTasks()} 
-                  context="containerInstance"
-                  cluster={this.props.cluster}
-                /> 
-              </TabContent>
+                        <div className={styles['ContainerInstanceTabs-content']}>
+                            <TabContent for="tasks">
+                                <TasksList
+                                    tasks={this.getContainerTasks()}
+                                    context="containerInstance"
+                                    cluster={this.props.cluster}
+                                />
+                            </TabContent>
+                        </div>
+                    </Tabs>
+                </Sheet>
             </div>
-          </Tabs>
-        </Sheet>
-      </div>
-    );
-  }
+        );
+    }
 
-  /**
-   * Select the given `tab`.
-   */
+    /**
+     * Select the given `tab`.
+     */
 
-  selectTab(tab) {
-    this.setState({ tab: tab })
-  }
+    selectTab(tab) {
+        this.setState({ tab: tab })
+    }
 
-  /**
-   * Close the sheet.
-   */
+    /**
+     * Close the sheet.
+     */
 
-  closeSheet() {
-    const clusterName = this.props.cluster.clusterName;
-    browserHistory.push(`/${clusterName}`);
-  }
+    closeSheet() {
+        const clusterName = this.props.cluster.clusterName;
+        browserHistory.push(`/${clusterName}`);
+    }
 
-  /**
-   * Put focus in the sheet.
-   */
+    /**
+     * Put focus in the sheet.
+     */
 
-  componentDidMount() {
-    findDOMNode(this.refs.heading).focus();
-  }
+    componentDidMount() {
+        findDOMNode(this.refs.heading).focus();
+    }
 
-  /**
-   * Get tasks for containerInstance
-   */
+    /**
+     * Get tasks for containerInstance
+     */
 
-  getContainerTasks() {
-    const { tasks } = this.props.cluster;
-    const { containerInstanceArn } = this.props.containerInstance;
-    return tasks.filter(task => task.containerInstanceArn === containerInstanceArn);
-  }
+    getContainerTasks() {
+        const { tasks } = this.props.cluster;
+        const { containerInstanceArn } = this.props.containerInstance;
+        return tasks.filter(task => task.containerInstanceArn === containerInstanceArn);
+    }
 };

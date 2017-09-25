@@ -14,9 +14,10 @@ module.exports = Cache;
  * Cache constructor
  *
  * @param {ECS} ecs  ecs client
+ * @param {EC2} ec2  ec2 client
  */
 
-function Cache(ecs){
+function Cache(ecs, ec2){
   Emitter.call(this);
   this.taskDefs = LRU({
     max: 1000000,
@@ -24,6 +25,7 @@ function Cache(ecs){
     length: (val, key) => 1
   });
   this.ecs = ecs;
+  this.ec2 = ec2;
   this.cache([], [], [], []); // initial state
   this.start();
 }
@@ -36,19 +38,19 @@ inherits(Cache, Emitter);
  */
 
 Cache.prototype.start = function(){
-  let poll = this.poll.bind(this);
-  defer(poll, err => {
-    if (err) this.emit('error', err);
-  });
+    let poll = this.poll.bind(this);
+    defer(poll, err => {
+        if (err) this.emit('error', err);
+    });
 
-  let self = this;
-  defer.setInterval(function *(){
-    try {
-      yield poll();
-    } catch (err) {
-      self.emit('error', err);
-    }
-  }, ms('1m'));
+    let self = this;
+    defer.setInterval(function *(){
+        try {
+            yield poll();
+        } catch (err) {
+            self.emit('error', err);
+        }
+    }, ms('1m'));
 };
 
 /**
@@ -57,21 +59,22 @@ Cache.prototype.start = function(){
  */
 
 Cache.prototype.poll = function *(){
-  debug('polling ecs...');
-  let ecs = this.ecs;
+    debug('polling ecs...');
+    let ecs = this.ecs;
+    let ec2 = this.ec2;
 
-  // retrieve the cluster definitions
-  let clusters = yield ecs.clusters();
-  clusters = clusters.clusters;
-  debug('received %d clusters', Object.keys(clusters).length);
+    // retrieve the cluster definitions
+    let clusters = yield ecs.clusters();
+    clusters = clusters.clusters;
+    debug('received %d clusters', Object.keys(clusters).length);
 
-  // from all the clusters, retrieve the services
-  let serviceCalls = clusters.map(cluster => {
-    return ecs.services(cluster.clusterArn);
-  })
-  let services = yield Promise.all(serviceCalls);
-  services = flatten(services);
-  debug('received %d services', services.length);
+    // from all the clusters, retrieve the services
+    let serviceCalls = clusters.map(cluster => {
+        return ecs.services(cluster.clusterArn);
+    })
+    let services = yield Promise.all(serviceCalls);
+    services = flatten(services);
+    debug('received %d services', services.length);
 
   // from all the clusters, retrieve the container instances
   let containerCalls = clusters.map(cluster => {
@@ -105,7 +108,14 @@ Cache.prototype.poll = function *(){
         return tasks;
       });
   });
+  // from container instances, retrieve ec2 instances
+  let ec2Instances = containerInstances.map(ci => {
+    return ci.ec2InstanceId;
+  });
+  let instances = yield ec2.instances(ec2Instances);
+
   let tasks = yield Promise.all(taskCalls);
+
   this.cache(clusters, services, containerInstances, tasks);
 };
 
@@ -114,7 +124,7 @@ Cache.prototype.poll = function *(){
  */
 
 Cache.prototype.clusters = function(){
-  return this._clusters;
+    return this._clusters;
 }
 
 /**
@@ -125,10 +135,10 @@ Cache.prototype.clusters = function(){
  */
 
 Cache.prototype.services = function(cluster){
-  if (!cluster) return this._services;
-  return this._services.filter(service => {
-    return clusterName(service.clusterArn) == cluster;
-  });
+    if (!cluster) return this._services;
+    return this._services.filter(service => {
+        return clusterName(service.clusterArn) == cluster;
+    });
 };
 
 /**
@@ -139,6 +149,19 @@ Cache.prototype.services = function(cluster){
  */
 
 Cache.prototype.containerInstances = function(cluster){
+  if (!cluster) return this._containerInstances;
+  return this._containerInstances.filter(instance => {
+    return clusterName(instance.clusterArn) == cluster;
+  });
+};
+
+/**
+ * Return the ec2Instances
+ *
+ * @param {String} cluster [optional]
+ */
+
+Cache.prototype.instances = function(cluster){
   if (!cluster) return this._containerInstances;
   return this._containerInstances.filter(instance => {
     return clusterName(instance.clusterArn) == cluster;
@@ -165,11 +188,11 @@ Cache.prototype.cache = function(clusters, services, containerInstances, tasks){
  */
 
 function flatten(arrays) {
-  var output = [];
-  arrays.forEach(arr => output = output.concat(arr));
-  return output;
+    var output = [];
+    arrays.forEach(arr => output = output.concat(arr));
+    return output;
 }
 
 function clusterName(arn){
-  return arn.split('/')[1];
+    return arn.split('/')[1];
 }

@@ -9,6 +9,7 @@ let AWS = require('aws-sdk');
 let cors = require('kcors');
 let path = require('path');
 let ECS = require('./ecs');
+let EC2 = require('./ec2');
 let koa = require('koa');
 let serve = require('koa-static');
 
@@ -18,7 +19,8 @@ let serve = require('koa-static');
 
 let app = koa();
 let ecs = new ECS(AWS);
-let cache = new Cache(ecs);
+let ec2 = new EC2(AWS, ecs);
+let cache = new Cache(ecs, ec2);
 
 /**
  * Set a cache error handler
@@ -43,11 +45,11 @@ app.use(logger());
  */
 
 app.use(function *(next){
-  try {
-    yield next;
-  } catch (err) {
-    console.log('error:', err.stack);
-  }
+    try {
+        yield next;
+    } catch (err) {
+        console.log('error:', err.stack);
+    }
 });
 
 /**
@@ -61,9 +63,10 @@ app.use(cors());
  */
 
 app.use(function *(next){
-  this.cache = cache;
-  this.ecs = ecs;
-  yield next;
+    this.cache = cache;
+    this.ecs = ecs;
+    this.ec2 = ec2;
+    yield next;
 });
 
 /**
@@ -92,7 +95,7 @@ app.use(route.get('/*', index));
  */
 
 function *index(){
-  yield send(this, 'build/index.html');
+    yield send(this, 'build/index.html');
 }
 
 /**
@@ -100,7 +103,7 @@ function *index(){
  */
 
 function *bundle(){
-  yield send(this, 'build/bundle.js');
+    yield send(this, 'build/bundle.js');
 }
 
 /**
@@ -108,7 +111,7 @@ function *bundle(){
  */
 
 function *sourcemap(){
-  yield send(this, 'build/bundle.js.map');
+    yield send(this, 'build/bundle.js.map');
 }
 
 /**
@@ -116,7 +119,7 @@ function *sourcemap(){
  */
 
 function *stylesheet(){
-  yield send(this, 'build/bundle.css');
+    yield send(this, 'build/bundle.css');
 }
 
 /**
@@ -124,7 +127,7 @@ function *stylesheet(){
  */
 
 function *stylesheetMap(){
-  yield send(this, 'build/bundle.css.map');
+    yield send(this, 'build/bundle.css.map');
 }
 
 /**
@@ -143,24 +146,23 @@ function *awsConfig() {
  */
 
 function *list(){
-  let cache = this.cache;
-  let clusters = cache.clusters();
-  this.body = clusters;
+    let cache = this.cache;
+    let clusters = cache.clusters();
+    this.body = clusters;
 }
 
 /**
- * Returns a json array of services and container 
- * instances for a given cluster in the path parameter.
- *
- * @param {String} cluster
+ * Returns a json array of services and container
+ * instances fora given cluster inthe path parameter.
+ ** @param {String} cluster
  */
 
 function *servicesAndContainerInstances(cluster){
-  let cache = this.cache;
-  this.body = {
-    services: cache.services(cluster),
-    containerInstances: cache.containerInstances(cluster),
-  };
+    let cache = this.cache;
+    this.body = {
+        services: cache.services(cluster),
+        containerInstances: cache.containerInstances(cluster),
+    };
 }
 
 /**
@@ -171,20 +173,20 @@ function *servicesAndContainerInstances(cluster){
  */
 
 function *services(cluster){
-  let cache = this.cache;
-  this.body = cache.services(cluster);
+    let cache = this.cache;
+    this.body = cache.services(cluster);
 }
 
 /**
- * Returns a json array of container instances for 
+ * Returns a json array of container instances for
  * a given cluster in the path parameter.
  *
  * @param {String} cluster
  */
 
 function *containerInstances(cluster){
-  let cache = this.cache;
-  this.body = cache.containerInstances(cluster);
+    let cache = this.cache;
+    this.body = cache.containerInstances(cluster);
 }
 
 /**
@@ -195,7 +197,7 @@ function *containerInstances(cluster){
  */
 
 function *task(taskArn){
-  let ecs = this.state.ecs;
-  let task = yield ecs.task(taskArn);
-  this.body = task;
+    let ecs = this.state.ecs;
+    let task = yield ecs.task(taskArn);
+    this.body = task;
 }

@@ -13,34 +13,31 @@ import ContainerInstance from '../container-instance';
 
 export default class ClustersContainer extends Component {
   static childContextTypes = {
-    awsConfig: React.PropTypes.object,
-  };
-
-  constructor(props, context) {
+        awsConfig: React.PropTypes.object,
+    };constructor(props, context) {
     super(props, context)
     this.state = {
       error: null,
       clusters: [],
       services: [],
-      containerInstances: [],
-      activeClusterArn: null,
+      containerInstances: [],activeClusterArn: null,
       activeServiceArn: null,
-      awsConfig: {},
+            awsConfig: {},
+        };
+    }
+
+    /**
+     * Pass through
+     */
+    getChildContext() {
+        return {
+            awsConfig: this.state.awsConfig,
     };
   }
 
-  /** 
-   * Pass through 
-  */
-  getChildContext() {
-    return {
-      awsConfig: this.state.awsConfig,
-    };
-  }
-
-  /**
-   * Render.
-   */
+    /**
+     * Render.
+     */
 
   render() {
     const activeClusterArn = this.getActiveClusterArn();
@@ -52,9 +49,7 @@ export default class ClustersContainer extends Component {
           activeClusterArn={activeClusterArn}
           searchTerm={this.state.searchTerm}
           setSearchTerm={::this.setSearchTerm}
-          selectCluster={::this.setActiveCluster} 
-          onRefresh={::this.fetchData}
-        />
+          selectCluster={::this.setActiveCluster}onRefresh={::this.fetchData} />
 
         <Loader loaded={isLoading} color="#3cc76a">
           {this.renderError()}
@@ -62,53 +57,52 @@ export default class ClustersContainer extends Component {
             services={this.state.services}
             searchTerm={this.state.searchTerm}
             activeClusterArn={activeClusterArn} />
-          <ContainerInstanceList
-            containerInstances={this.state.containerInstances}
-            activeClusterArn={activeClusterArn}
-          />
-        </Loader>
-        {this.renderServiceSheet()}
-        {this.renderContainerInstanceSheet()}
+        <ContainerInstanceList
+                    containerInstances={this.state.containerInstances}
+                    activeClusterArn={activeClusterArn}
+                />
+              </Loader>
+        {this.renderServiceSheet()}{this.renderContainerInstanceSheet()}
       </Page>
     )
   }
 
-  /**
-   * Get the active cluster ARN.
-   */
+    /**
+     * Get the active cluster ARN.
+     */
 
-  getActiveClusterArn() {
-    if (this.state.activeClusterArn) {
-      return this.state.activeClusterArn;
+    getActiveClusterArn() {
+        if (this.state.activeClusterArn) {
+            return this.state.activeClusterArn;
+        }
+
+        const clusterName = this.props.params.clusterName;
+        const cluster = this.findCluster(clusterName);
+        // TODO: if no matching cluster, show an error
+        return cluster && cluster.clusterArn;
     }
 
-    const clusterName = this.props.params.clusterName;
-    const cluster = this.findCluster(clusterName);
-    // TODO: if no matching cluster, show an error
-    return cluster && cluster.clusterArn;
-  }
+    /**
+     * Set the current search term.
+     */
 
-  /**
-   * Set the current search term.
-   */
+    setSearchTerm(str) {
+        this.setState({ searchTerm: str });
+    }
 
-  setSearchTerm(str) {
-    this.setState({ searchTerm: str });
-  }
+    /**
+     * Set the active cluster ARN.
+     */
 
-  /**
-   * Set the active cluster ARN.
-   */
+    setActiveCluster(cluster) {
+        this.setState({
+            activeClusterArn: cluster && cluster.clusterArn
+        });
+    }
 
-  setActiveCluster(cluster) {
-    this.setState({
-      activeClusterArn: cluster && cluster.clusterArn
-    });
-  }
-
-  /**
-   * Render the service sheet.
-   */
+    /**
+     * Render the service sheet.
+     */
 
   renderServiceSheet() {
     const clusterName = this.props.params.clusterName;
@@ -117,156 +111,149 @@ export default class ClustersContainer extends Component {
     const service = this.findService(clusterName, serviceName);
     if (!service) return null;
     // TODO: if no matching service is found, show an error
-    const cluster = this.findCluster(clusterName);
-    return <Service service={service} cluster={cluster} />
-  }
-
-  /**
-   * Render the service sheet.
-   */
-
-  renderContainerInstanceSheet() {
-    const clusterName = this.props.params.clusterName;
-    const instanceArn = this.props.params.instanceArn;
-    if (!instanceArn) return null;
-    const containerInstance = this.findContainerInstance(clusterName, instanceArn);
-    if (!containerInstance) return null;
-    // TODO: if no matching container instance is found, show an error
-    const cluster = this.findCluster(clusterName);
-    return <ContainerInstance containerInstance={containerInstance} cluster={cluster} />
-  }
-
-  /**
-   * Render the error.
-   */
-
-  renderError() {
-    return this.state.error
-      ? <ErrorMessage error={this.state.error} />
-      : null;
-  }
-
-  /**
-   * Get cluster by its `name`.
-   */
-
-  findCluster(name) {
-    return this.state.clusters.find((cluster) => {
-      return cluster.clusterName == name;
-    });
-  }
-
-  /**
-   * Get service by its `clusterName` and `serviceName`.
-   */
-
-  findService(clusterName, serviceName) {
-    const cluster = this.findCluster(clusterName);
-    if (!cluster) {
-      return;
+    const cluster = this.findCluster(clusterName);return <Service service={service} cluster={cluster} />
     }
 
-    return this.state.services.find((service) => {
-      return service.clusterArn === cluster.clusterArn &&
-        service.serviceName === serviceName;
-    });
+    /**
+     * Render the service sheet.
+     */
+
+    renderContainerInstanceSheet() {
+        const clusterName = this.props.params.clusterName;
+        const instanceArn = this.props.params.instanceArn;
+        if (!instanceArn) return null;
+        const containerInstance = this.findContainerInstance(clusterName, instanceArn);
+        if (!containerInstance) return null;
+        // TODO: if no matching container instance is found, show an error
+        const cluster = this.findCluster(clusterName);
+        return <ContainerInstance containerInstance={containerInstance} cluster={cluster}/>
   }
+
+    /**
+     * Render the error.
+     */
+
+    renderError() {
+        return this.state.error
+            ? <ErrorMessage error={this.state.error} />
+            : null;
+    }
+
+    /**
+     * Get cluster by its `name`.
+     */
+
+    findCluster(name) {
+        return this.state.clusters.find((cluster) => {
+            return cluster.clusterName == name;
+        });
+    }
+
+    /**
+     * Get service by its `clusterName` and `serviceName`.
+     */
+
+    findService(clusterName, serviceName) {
+        const cluster = this.findCluster(clusterName);
+        if (!cluster) {
+            return;
+        }
+
+        return this.state.services.find((service) => {
+            return service.clusterArn === cluster.clusterArn &&
+                service.serviceName === serviceName;
+        });
+    }
 
   /**
    * Get container instance by its `clusterName` and `containerInstanceArn`.
-   */
+     */
 
-  findContainerInstance(clusterName, containerInstanceArn) {
-    const cluster = this.findCluster(clusterName);
-    if (!cluster) {
-      return;
+    findContainerInstance(clusterName, containerInstanceArn) {
+        const cluster = this.findCluster(clusterName);
+        if (!cluster) {
+            return;
+        }
+
+        return this.state.containerInstances.find((ci) => {
+            return ci.clusterArn === cluster.clusterArn && (
+                ci.containerInstanceArn === containerInstanceArn ||
+                ci.containerInstanceArn.endsWith(`:container-instance/${containerInstanceArn}`)
+            );
+        });
     }
 
-    return this.state.containerInstances.find((ci) => {
-      return ci.clusterArn === cluster.clusterArn && (
-          ci.containerInstanceArn === containerInstanceArn ||
-          ci.containerInstanceArn.endsWith(`:container-instance/${containerInstanceArn}`) 
-        );
-    });
-  }
-
-  /**
-   * When component mounts, fetch data
-  */
+    /**
+     * When component mounts, fetch data
+   */
 
   componentDidMount() {
     this.fetchData();
-  }
+    }
 
-  /**
-   * Fetch data.
-   */
+    /**
+     * Fetch data.
+     */
 
-  fetchData() {
-    // Reset data sets
-    this.setState({
-      clusters: [],
-      services: [],
-      containerInstances: [],
-    });
-
-    request
+    fetchData() {
+        // Reset data sets
+        this.setState({
+            clusters: [],
+            services: [],
+            containerInstances: [],
+        });request
     .get('/api/clusters')
     .end(function(err, res) {
       if (err) {
         return this.setState({ error: err.message });
       }
 
-      const clusters = res.body;
-      this.setState({ clusters });
+                const clusters = res.body;
+                this.setState({ clusters });
 
       for (let i = 0; i < clusters.length; i++) {
         this.fetchServices(clusters[i]);
       }
     }.bind(this));
+request
+            .get('/api/aws-config')
+            .end((err, res) => {
+                if (err) {
+                    return this.setState({ error: err.message });
+                }
 
-    request
-    .get('/api/aws-config')
-    .end((err, res) => {
-      if (err) {
-        return this.setState({ error: err.message });
-      }
+                const awsConfig = res.body;
+                this.setState({ awsConfig });
+            });  }
 
-      const awsConfig = res.body;
-      this.setState({ awsConfig });
-    });
-  }
+    /**
+     * Fetch services for the given `cluster`.
+     */
 
-  /**
-   * Fetch services for the given `cluster`.
-   */
-
-  fetchServices(cluster) {
-    request
-    .get(`/api/clusters/${cluster.clusterName}`)
-    .end(function(err, res) {
-      if (err) {
-        err = err || new Error(`unable to fetch information on ${cluster.clusterName} (${res.status})`);
-        return this.setState({ error: err.message });
-      }
+    fetchServices(cluster) {
+        request
+            .get(`/api/clusters/${cluster.clusterName}`)
+            .end(function(err, res) {
+                if (err) {
+                    err = err || new Error(`unable to fetch information on ${cluster.clusterName} (${res.status})`);
+                    return this.setState({ error: err.message });
+                }
 
       const { services, containerInstances } = this.state;
+     let sortedServices = services.concat(res.body.services);
+                // sort services by serviceName
+                sortedServices.sort((a, b) => {
+                    const nameA = a.serviceName.toUpperCase();
+                    const nameB = b.serviceName.toUpperCase();
 
-      let sortedServices = services.concat(res.body.services);
-      // sort services by serviceName
-      sortedServices.sort((a, b) => {
-        const nameA = a.serviceName.toUpperCase();
-        const nameB = b.serviceName.toUpperCase();
-
-        if (nameA == nameB) {
-          return 0;
-        }
-        return nameA < nameB ? -1 : 1;
-      });
-
+                    if (nameA == nameB) {
+                        return 0;
+                    }
+                    return nameA < nameB ? -1 : 1;
+                });
       this.setState({
         services: sortedServices,
-        containerInstances: containerInstances.concat(res.body.containerInstances),
+                    containerInstances: containerInstances.concat(res.body.containerInstances),
       });
     }.bind(this));
   }
