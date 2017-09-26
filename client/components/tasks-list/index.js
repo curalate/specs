@@ -36,8 +36,16 @@ export default class TasksList extends Component {
         const taskUrl = `https://${region}.console.aws.amazon.com/ecs/home?region=${region}#/clusters/${clusterName}/tasks/${taskArnId}/details`;
         const containerInstanceUrl = `/${clusterName}/container-instance/${containerInstanceId}`;
         const serviceUrl = `/${clusterName}/${serviceName}`;
-        // const adminUrl = `${containerIp}:${adminHostPort}`;
-        const adminUrl = `google.com`;
+
+        for (let n=0; n<task.containers[0].networkBindings.length; n++) {
+            if (task.containers[0].networkBindings[n].containerPort === 8081) {
+                var hostPort = task.containers[0].networkBindings[n].hostPort;
+            }
+        }
+
+        const containerIp = task.containerInstanceIp;
+        const adminUrl = `http://${containerIp}:${hostPort}`;
+        // const adminUrl = `google.com`;
 
         return (
             <li key={task.taskArn}>
