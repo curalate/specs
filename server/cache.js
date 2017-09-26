@@ -108,6 +108,9 @@ Cache.prototype.poll = function *(){
                 return tasks;
             });
     });
+
+    let tasks = yield Promise.all(taskCalls);
+
     // from container instances, retrieve ec2 instances
     let ec2Instances = containerInstances.map(ci => {
         return ci.ec2InstanceId;
@@ -115,32 +118,27 @@ Cache.prototype.poll = function *(){
     let instances = yield ec2.instances(ec2Instances);
 
 
-  let tasks = yield Promise.all(taskCalls);
-
-    // containerInstances.forEach((ci, i) => ci.instanceIp = instances['Reservations'][i].Instances[i].NetworkInterfaces[i].PrivateIpAddress);
-
-    // containerInstances.forEach((ci, i) => ci.instanceIp = ec2Instances[i]);
-
-    // console.log(instances['Reservations'][0]['Instances'])
-
-    // for (var j = 0; containerInstances.length; j++) {
-    //     console.log(containerInstances[j].ec2InstanceId)
-    // }
-
-    // for (var i = 0; instances['Reservations'].length; i++) {
-    //     console.log(instances['Reservations'][i]['Instances'][0]['InstanceId'])
-    // }
-
+    // Match each containerInstance with the correct ec2 private IP address
 
     for (let j = 0; j<containerInstances.length; j++) {
         for (let z = 0; z<instances['Reservations'].length; z++) {
-            if (containerInstances[j].ec2InstanceId == instances['Reservations'][z]['Instances'][0]['InstanceId']) {
+            if (containerInstances[j].ec2InstanceId === instances['Reservations'][z]['Instances'][0]['InstanceId']) {
                 containerInstances[j].instanceIp = instances['Reservations'][z]['Instances'][0]['PrivateIpAddress'];
             }
-                console.log(containerInstances[j].instanceIp);
         }
     }
-    // tasks.forEach((task, i) => task.containerInstanceIP = )this.cache(clusters, services, containerInstances, tasks);
+    // brute force way of attaching the ec2 instance ip address to eachtaskfor (let a = 0; a<tasks.length; a++) {
+        for (let b = 0; b<tasks[a].length; b++) {
+            // console.log(tasks[a][b]);
+            for (let c = 0; c<containerInstances.length; c++) {
+                if (tasks[a][b].containerInstanceArn === containerInstances[c].containerInstanceArn) {
+                    tasks[a][b].containerInstanceIp = containerInstances[c].instanceIp;
+                }
+            }
+        }
+    }
+
+    this.cache(clusters, services, containerInstances, tasks);
 };
 
 /**
