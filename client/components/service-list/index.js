@@ -24,7 +24,7 @@ export default class ServiceList extends Component {
     // HACK: pull the cluster name from its arn
     const clusterName = service.clusterArn.split('cluster/')[1];
     const isGrid = false;
-    const viewName = isGrid ? styles.ServiceListItemGrid : styles.ServiceListItemList;
+    // const viewName = isGrid ? styles.ServiceListItemGrid : styles.ServiceListItemList;
     const classes =  {
           [styles.ServiceListItem]: true,
           [styles.ServiceListItemGrid]: isGrid
