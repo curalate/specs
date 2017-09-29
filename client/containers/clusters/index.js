@@ -26,15 +26,12 @@ export default class ClustersContainer extends Component {
             activeClusterArn: null,
             activeServiceArn: null,
             awsConfig: {},
-            isGrid: false
+            isGrid: true
         };
         this.toggleGrid = this.toggleGrid.bind(this);
-        console.log("This is from the constructor:" + this);
     }
 
     toggleGrid() {
-        console.log("toggleGrid is being called here");
-        console.log(this);
         this.setState(prevState => ({
             isGrid: !prevState.isGrid
         }));

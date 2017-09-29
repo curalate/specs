@@ -7,15 +7,6 @@
   padding-bottom: 25px;
 }
 
-/*.ServiceListItem {*/
-  /*display: inline-block;*/
-  /*width: 216px;*/
-  /*height: 193px;*/
-  /*box-sizing: border-box;*/
-  /*list-style: none;*/
-  /*margin: 5px;*/
-/*}*/
-
 .ServiceListItem {
   height: 193px;
   box-sizing: border-box;
