@@ -37,29 +37,7 @@ export default class TasksList extends Component {
         const containerInstanceUrl = `/${clusterName}/container-instance/${containerInstanceId}`;
         const serviceUrl = `/${clusterName}/${serviceName}`;
 
-        // for (let n=0; n<task.containers[0].networkBindings.length; n++) {
-        //     if (task.containers[0].networkBindings[n].containerPort === 8081) {
-        //         var hostPort = task.containers[0].networkBindings[n].hostPort;
-        //     }
-        // }
-
-        // const binding = task.containers[0].networkBindings.find((binding) => {
-        //     return binding.containerPort === 8081;
-        // });
-
-        // const hostPort = binding.hostPort;
-
         const containerIp = task.containerInstanceIp;
-        // const adminUrl = `http://${containerIp}:${hostPort}`;
-
-        // const adminUrl =
-        //
-        //     {task.containers[0].networkBindings.map(({ protocol, hostPort, containerPort }, index) => (
-        //         <tr key={`mapping_${index}`}>
-        //             <th>port mappings</th>
-        //             <td><a href={adminUrl} target="_blank">{protocol} : {hostPort} (host) - {containerPort} (container)</a></td>
-        //         </tr>
-        //     ))}
 
         return (
             <li key={task.taskArn}>

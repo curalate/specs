@@ -1,11 +1,7 @@
 
 'use strict'
 
-// let debug = require('debug')('ecs');
 let Promise = require('bluebird');
-// let chunk = require('chunk');
-// let Batch = require('batch');
-// let co = require('co');
 
 module.exports = EC2;
 
@@ -15,9 +11,8 @@ module.exports = EC2;
  * @param {AWS} aws - an aws client
  */
 
-function EC2(aws, ecs){
+function EC2(aws){
     this.ec2 = new aws.EC2();
-    // this.ecs = ecs;
 }
 
 /** Return a promise to return ec2 instances
@@ -26,10 +21,7 @@ function EC2(aws, ecs){
  * */
 
 EC2.prototype.instances = function(ec2Instances){
-    console.log('here in ec2.js with ecs.containerInstances(%s)', ec2Instances);
-    // return this.ecs.describeContainerInstances([cluster, containerInstances])
-    //     .bind(this)
-    //     .then(this.describeInstances);
+    // console.log('here in ec2.js with ecs.containerInstances(%s)', ec2Instances);
     return this.describeInstances(ec2Instances)
         .bind(this);
 };

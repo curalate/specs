@@ -12,60 +12,77 @@ import Service from '../service';
 import ContainerInstance from '../container-instance';
 
 export default class ClustersContainer extends Component {
-  static childContextTypes = {
+    static childContextTypes = {
         awsConfig: React.PropTypes.object,
-    };constructor(props, context) {
-    super(props, context)
-    this.state = {
-      error: null,
-      clusters: [],
-      services: [],
-      containerInstances: [],activeClusterArn: null,
-      activeServiceArn: null,
+    };
+
+    constructor(props, context) {
+        super(props, context)
+        this.state = {
+            error: null,
+            clusters: [],
+            services: [],
+            containerInstances: [],
+            activeClusterArn: null,
+            activeServiceArn: null,
             awsConfig: {},
+            isGrid: false
         };
+        this.toggleGrid = this.toggleGrid.bind(this);
+        console.log("This is from the constructor:" + this);
     }
 
+    toggleGrid() {
+        console.log("toggleGrid is being called here");
+        console.log(this);
+        this.setState(prevState => ({
+            isGrid: !prevState.isGrid
+        }));
+    }
     /**
      * Pass through
      */
     getChildContext() {
         return {
             awsConfig: this.state.awsConfig,
-    };
-  }
+        };
+    }
 
     /**
      * Render.
      */
 
-  render() {
-    const activeClusterArn = this.getActiveClusterArn();
-    const isLoading = !!this.state.error || !!this.state.services.length;
-    return (
-      <Page>
-        <Sidebar
-          clusters={this.state.clusters}
-          activeClusterArn={activeClusterArn}
-          searchTerm={this.state.searchTerm}
-          setSearchTerm={::this.setSearchTerm}
-          selectCluster={::this.setActiveCluster}onRefresh={::this.fetchData} />
+    render() {
+        const activeClusterArn = this.getActiveClusterArn();
+        const isLoading = !!this.state.error || !!this.state.services.length;
+        return (
+            <Page toggleGrid={this.toggleGrid}>
+              <Sidebar
+                  clusters={this.state.clusters}
+                  activeClusterArn={activeClusterArn}
+                  searchTerm={this.state.searchTerm}
+                  setSearchTerm={::this.setSearchTerm}
+                  selectCluster={::this.setActiveCluster}
+                  onRefresh={::this.fetchData}
+              />
 
-        <Loader loaded={isLoading} color="#3cc76a">
-          {this.renderError()}
-          <ServiceList
-            services={this.state.services}
-            searchTerm={this.state.searchTerm}
-            activeClusterArn={activeClusterArn} />
-        <ContainerInstanceList
+              <Loader loaded={isLoading} color="#3cc76a">
+                  {this.renderError()}
+                <ServiceList
+                    services={this.state.services}
+                    searchTerm={this.state.searchTerm}
+                    activeClusterArn={activeClusterArn}
+                    isGrid={this.state.isGrid}/>
+                <ContainerInstanceList
                     containerInstances={this.state.containerInstances}
                     activeClusterArn={activeClusterArn}
                 />
               </Loader>
-        {this.renderServiceSheet()}{this.renderContainerInstanceSheet()}
-      </Page>
-    )
-  }
+                {this.renderServiceSheet()}
+                {this.renderContainerInstanceSheet()}
+            </Page>
+        )
+    }
 
     /**
      * Get the active cluster ARN.
@@ -104,14 +121,15 @@ export default class ClustersContainer extends Component {
      * Render the service sheet.
      */
 
-  renderServiceSheet() {
-    const clusterName = this.props.params.clusterName;
-    const serviceName = this.props.params.serviceName;
-    if (!serviceName) return null;
-    const service = this.findService(clusterName, serviceName);
-    if (!service) return null;
-    // TODO: if no matching service is found, show an error
-    const cluster = this.findCluster(clusterName);return <Service service={service} cluster={cluster} />
+    renderServiceSheet() {
+        const clusterName = this.props.params.clusterName;
+        const serviceName = this.props.params.serviceName;
+        if (!serviceName) return null;
+        const service = this.findService(clusterName, serviceName);
+        if (!service) return null;
+        // TODO: if no matching service is found, show an error
+        const cluster = this.findCluster(clusterName);
+        return <Service service={service} cluster={cluster} />
     }
 
     /**
@@ -126,8 +144,8 @@ export default class ClustersContainer extends Component {
         if (!containerInstance) return null;
         // TODO: if no matching container instance is found, show an error
         const cluster = this.findCluster(clusterName);
-        return <ContainerInstance containerInstance={containerInstance} cluster={cluster}/>
-  }
+        return <ContainerInstance containerInstance={containerInstance} cluster={cluster} />
+    }
 
     /**
      * Render the error.
@@ -165,8 +183,8 @@ export default class ClustersContainer extends Component {
         });
     }
 
-  /**
-   * Get container instance by its `clusterName` and `containerInstanceArn`.
+    /**
+     * Get container instance by its `clusterName` and `containerInstanceArn`.
      */
 
     findContainerInstance(clusterName, containerInstanceArn) {
@@ -185,10 +203,10 @@ export default class ClustersContainer extends Component {
 
     /**
      * When component mounts, fetch data
-   */
+     */
 
-  componentDidMount() {
-    this.fetchData();
+    componentDidMount() {
+        this.fetchData();
     }
 
     /**
@@ -201,21 +219,24 @@ export default class ClustersContainer extends Component {
             clusters: [],
             services: [],
             containerInstances: [],
-        });request
-    .get('/api/clusters')
-    .end(function(err, res) {
-      if (err) {
-        return this.setState({ error: err.message });
-      }
+        });
+
+        request
+            .get('/api/clusters')
+            .end(function(err, res) {
+                if (err) {
+                    return this.setState({ error: err.message });
+                }
 
                 const clusters = res.body;
                 this.setState({ clusters });
 
-      for (let i = 0; i < clusters.length; i++) {
-        this.fetchServices(clusters[i]);
-      }
-    }.bind(this));
-request
+                for (let i = 0; i < clusters.length; i++) {
+                    this.fetchServices(clusters[i]);
+                }
+            }.bind(this));
+
+        request
             .get('/api/aws-config')
             .end((err, res) => {
                 if (err) {
@@ -224,7 +245,8 @@ request
 
                 const awsConfig = res.body;
                 this.setState({ awsConfig });
-            });  }
+            });
+    }
 
     /**
      * Fetch services for the given `cluster`.
@@ -239,8 +261,9 @@ request
                     return this.setState({ error: err.message });
                 }
 
-      const { services, containerInstances } = this.state;
-     let sortedServices = services.concat(res.body.services);
+                const { services, containerInstances } = this.state;
+
+                let sortedServices = services.concat(res.body.services);
                 // sort services by serviceName
                 sortedServices.sort((a, b) => {
                     const nameA = a.serviceName.toUpperCase();
@@ -251,10 +274,11 @@ request
                     }
                     return nameA < nameB ? -1 : 1;
                 });
-      this.setState({
-        services: sortedServices,
+
+                this.setState({
+                    services: sortedServices,
                     containerInstances: containerInstances.concat(res.body.containerInstances),
-      });
-    }.bind(this));
-  }
+                });
+            }.bind(this));
+    }
 };

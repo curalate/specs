@@ -23,12 +23,13 @@ export default class ServiceList extends Component {
     const updated = moment(service.deployments[0].updatedAt).fromNow();
     // HACK: pull the cluster name from its arn
     const clusterName = service.clusterArn.split('cluster/')[1];
-    const isGrid = false;
+    // const isGrid = false;
     // const viewName = isGrid ? styles.ServiceListItemGrid : styles.ServiceListItemList;
     const classes =  {
           [styles.ServiceListItem]: true,
-          [styles.ServiceListItemGrid]: isGrid
+          [styles.ServiceListItemGrid]: this.props.isGrid
     };
+    console.log(this.props.isGrid);
     const liClasses = classNames(classes);
     return (
       <li key={n + service.serviceArn} className={liClasses}>
