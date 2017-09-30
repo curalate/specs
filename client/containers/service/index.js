@@ -113,17 +113,4 @@ export default class Service extends Component {
     const {serviceName} = this.props.service;
     return tasks.filter(task => task.group === `service:${serviceName}`);
   }
-};
-
-/**
- * Get tasks for service
- */
-
-getServiceTasks()
-{
-  const {tasks} = this.props.cluster;
-  const {serviceName} = this.props.service;
-  return tasks.filter(task => task.group === `service:${serviceName}`);
-}
-}
-;
+};git 
