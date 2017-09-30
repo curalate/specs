@@ -1,5 +1,6 @@
 
-.ContainerInstanceStats {}
+.ContainerInstanceStats {
+}
 
 .ContainerInstanceStats table {
   font-size: 16px;
@@ -9,32 +10,32 @@
 }
 
 .ContainerInstanceStats th {
-    text-align: right;
-    font-weight: 500;
-    width: 38%;
+  text-align: right;
+  font-weight: 500;
+  width: 38%;
 }
 
 .ContainerInstanceStats td {
-    text-align: left;
-    padding-left: 7px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+  text-align: left;
+  padding-left: 7px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .ContainerInstanceStatsInfo {
-    color: #54585E;
-    font-size: 14px;
-    font-weight: italic;
-    margin-bottom: 5px;
+  color: #54585E;
+  font-size: 14px;
+  font-weight: italic;
+  margin-bottom: 5px;
 }
 
 .ContainerInstanceStats--left-aligned th {
-    text-align: right;
-    font-weight: 500;
-    width: auto;
+  text-align: right;
+  font-weight: 500;
+  width: auto;
 }
 
 .ContainerInstanceStats--left-aligned td {
-    width: 80%;
+  width: 80%;
 }
