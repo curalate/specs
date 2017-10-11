@@ -31,14 +31,20 @@ export default class ClustersContainer extends Component {
         this.toggleGrid = this.toggleGrid.bind(this);
     }
 
+    /**
+     * Toggle between grid and list
+     */
+
     toggleGrid() {
         this.setState(prevState => ({
             isGrid: !prevState.isGrid
         }));
     }
+
     /**
      * Pass through
      */
+
     getChildContext() {
         return {
             awsConfig: this.state.awsConfig,
