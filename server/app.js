@@ -78,6 +78,7 @@ app.use(route.get('/api/clusters/:cluster/services', services));
 app.use(route.get('/api/clusters/:cluster/containerInstances', containerInstances));
 app.use(route.get('/api/clusters/:cluster/task/:task', task));
 app.use(route.get('/api/aws-config', awsConfig));
+app.use(route.get('/health', health));
 
 /**
  * Static routes.
@@ -199,4 +200,12 @@ function* task(taskArn) {
   let ecs = this.state.ecs;
   let task = yield ecs.task(taskArn);
   this.body = task;
+}
+
+/**
+ * Return status code
+ */
+
+function* health() {
+    this.status = 200;
 }

@@ -68,11 +68,14 @@ const config = module.exports = {
     proxy: {
       '/api/*': {
         target: 'http://localhost:3000/'
+      },
+      '/health': {
+        target: 'http://localhost:3000/'
       }
     }
   }
-}
+};
 
-if (env == 'production') {
+if (env === 'production') {
   config.plugins.push(new ExtractTextPlugin('bundle.css'))
 }
